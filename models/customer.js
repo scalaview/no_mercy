@@ -96,6 +96,9 @@ module.exports = function(sequelize, DataTypes) {
           expires_in: expires_in
         })
       },
+      isAdmin: function(){
+        return this.role && this.role == "admin"
+      },
       reduceTraffic: function(models, extractOrder, successCallBack, errCallBack) {
         var customer = this
         async.waterfall([function(next){

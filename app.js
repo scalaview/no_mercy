@@ -98,10 +98,11 @@ app.use('/admin', function (req, res, next) {
 
 
 // --------------- routers -----------------------
-var api  = require('./routers/api');
-for (var i = 0; i < api.length; i++) {
-  app.use(api[i]);
+var apiV1  = require('./routers/api/v1');
+for (var i = 0; i < apiV1.length; i++) {
+  app.use('/api/v1', apiV1[i]);
 };
+
 
 var adminRouters  = require('./routers/admin');
 

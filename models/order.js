@@ -74,17 +74,9 @@ module.exports = function(sequelize, DataTypes) {
           return "充值成功"
         }
       },
-      autoRecharge: function(trafficPlan){
-        var typeJson = trafficPlan.typeJson()
-        if(trafficPlan.type == typeJson['空中平台']){
-          return new DefaultRecharger(this.phone, this.bid, this.id)
-        }else if(trafficPlan.type == typeJson['华沃广东']){
-          return new HuawoRecharger(this.phone, this.bid, this.id, config.huawo_province_account, config.huawo_province_pwd, 1)
-        }else if(trafficPlan.type == typeJson['华沃全国']){
-          return new HuawoRecharger(this.phone, this.bid, this.id, config.huawo_account, config.huawo_pwd, 0)
-        }else if(trafficPlan.type == typeJson['华沃红包']){
-          return new HuawoRecharger(this.phone, this.bid, this.id, config.huawo_lucky_account, config.huawo_lucky_pwd, 0)
-        }else if(trafficPlan.type == typeJson['曦和流量']){
+      autoRecharge: function(product){
+        var typeJson = product.typeJson()
+        if(product.type == typeJson['曦和流量']){
           return Order.ChongRecharger.rechargeOrder(this.phone, this.bid, "http://protchar.cn:8080/liuliangshopconfirm")
         }else{
           return new Recharger(this.phone, this.value)
