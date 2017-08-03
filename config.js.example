@@ -1,0 +1,4 @@
+module.exports = {
+  session_secret: "no mercy 20170803",
+  port: 3008
+}

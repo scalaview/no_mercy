@@ -1,0 +1,3 @@
+exports.on = function (argument) {
+  // body...
+}
