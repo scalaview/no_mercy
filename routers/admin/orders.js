@@ -105,4 +105,131 @@ admin.get("/orders/:id", function(req, res) {
 })
 
 
+admin.get("/orders/new", function(req, res) {
+  async.waterfall([function(next){
+    models.Product.scope("forSelect").findAll().then(function(trafficPlans) {
+      next(null, trafficPlans)
+    }).catch(function(err) {
+      next(err)
+    })
+  }, function(trafficPlans, outnext) {
+    async.map(trafficPlans, function(trafficPlan, next) {
+      next(null, [trafficPlan.id, trafficPlan.name])
+    }, function(err, trafficPlanCollection) {
+      outnext(null, trafficPlanCollection)
+    })
+  }], function(err, trafficPlanCollection) {
+    var extractOrder = models.ExtractOrder.build({}),
+        trafficPlanOptions = { name: 'trafficPlanId', id: 'trafficPlanId', class: 'select2 col-lg-12 col-xs-12' }
+    res.render("admin/extractorders/new", {
+      extractOrder: extractOrder,
+      trafficPlanOptions: trafficPlanOptions,
+      trafficPlanCollection: trafficPlanCollection,
+      path: '/admin/extractorder'
+    })
+  })
+})
+
+admin.post("/extractorder", function(req, res) {
+  if(!( req.body.phone !== undefined && req.body.phone.present() && req.body.trafficPlanId !== undefined &&  req.body.trafficPlanId.present() )){
+    res.format({
+      html: function(){
+        res.redirect("/admin/extractorders/new")
+        return
+      },
+      json: function(){
+        res.json({
+          code: 1,
+          msg: "参数错误"
+        });
+        return
+      },
+      default: function() {
+        res.status(406).send('Not Acceptable');
+        return
+      }
+    });
+    return
+  }
+  async.waterfall([function(next) {
+    models.TrafficPlan.findById(req.body.trafficPlanId).then(function(trafficPlan) {
+      if(trafficPlan){
+        next(null, trafficPlan)
+      }else{
+        next(new Error("请选择正确的流量包"))
+      }
+    }).catch(function(err) {
+      next(err)
+    })
+  }, function(trafficPlan, next){
+    models.ExtractOrder.build({
+      exchangerType: trafficPlan.className(),
+      exchangerId: trafficPlan.id,
+      phone: req.body.phone,
+      cost: req.body.cost,
+      value: trafficPlan.value,
+      bid: trafficPlan.bid,
+      type: trafficPlan.type,
+      chargeType: "terminal",
+      extend: req.body.extend,
+      productType: models.TrafficPlan.PRODUCTTYPE["traffic"]
+    }).save().then(function(extractOrder) {
+      next(null, extractOrder, trafficPlan)
+    }).catch(function(err) {
+      next(err)
+    })
+  }, function(extractOrder, trafficPlan, next){
+    autoCharge(extractOrder, trafficPlan, function(err){
+      if(err){
+        next(err)
+      }else{
+        next(null, extractOrder, trafficPlan)
+      }
+    })
+  }], function(err, extractOrder, trafficPlan) {
+    if(err){
+      console.log(err)
+      res.format({
+        html: function(){
+          req.flash('err', err.message)
+          res.redirect("/admin/extractorders/new")
+          return
+        },
+        json: function(){
+          res.json({
+            code: 1,
+            msg: err.message
+          });
+          return
+        },
+        default: function() {
+          res.status(406).send('Not Acceptable');
+          return
+        }
+      });
+    }else{
+      res.format({
+        html: function(){
+          req.flash('info', "create success")
+          res.redirect("/admin/extractorders/" + extractOrder.id + "/edit")
+          return
+        },
+        json: function(){
+          res.json({
+            code: 0,
+            msg: "成功"
+          });
+          return
+        },
+        default: function() {
+          res.status(406).send('Not Acceptable');
+          return
+        }
+      });
+    }
+  })
+
+})
+
+
 module.exports = admin;

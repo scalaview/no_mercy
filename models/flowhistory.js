@@ -12,51 +12,8 @@ module.exports = function(sequelize, DataTypes) {
     typeId: { type: DataTypes.INTEGER, allowNull: true },
     amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0.00 },
     comment: { type: DataTypes.STRING, allowNull: false },
+    source: { type: DataTypes.VIRTUAL }
   }, {
-    classMethods: {
-      associate: function(models) {
-        models.FlowHistory.belongsTo(models.Customer, { foreignKey: 'customerId' });
-        models.FlowHistory.belongsTo(models.Order, {
-          foreignKey: 'typeId',
-          scope: {
-            type: 'Order'
-          }
-        });
-      },
-      histories: function(options, state, successCallBack, errCallBack){
-        FlowHistory.scope(state).findAll(options || {}).then(function(flowHistories) {
-          async.map(flowHistories, function(flowHistory, next){
-            if( state === 'income' ){
-              flowHistory.getOrder().then(function(order) {
-                flowHistory.source = order
-                next(null, flowHistory)
-              }).catch(function(err){
-                next(err)
-              })
-            }else{
-              flowHistory.getExtractOrder().then(function(extractOrder) {
-                flowHistory.source = extractOrder
-                next(null, flowHistory)
-              }).catch(function(err){
-                next(err)
-              })
-            }
-          } , function(err, flowHistories){
-            if(err){
-              errCallBack(err)
-            }else{
-              successCallBack(flowHistories)
-            }
-          })
-        })
-      },
-      incomeHistories: function(options, successCallBack, errCallBack){
-        this.histories(options, 'income', successCallBack, errCallBack)
-      },
-      reduceHistories: function(options, successCallBack, errCallBack){
-        this.histories(options, 'reduce', successCallBack, errCallBack)
-      }
-    },
     scopes: {
       income: {
         where: {
@@ -74,27 +31,76 @@ module.exports = function(sequelize, DataTypes) {
           ['createdAt', 'DESC']
         ]
       }
-    },
-    instanceMethods: {
-      getSource: function(conditions){
-        if(this.type){
-          return this['get' + this.type].call(this, conditions)
-        }
-      },
-      stateName: function(){
-        switch(this.state){
-          case 1:
-            return "增加"
-          case 0:
-            return "减少"
-        }
-      }
     }
   });
   FlowHistory.STATE = {
     ADD: 1,
     REDUCE: 0
   };
+
+
+  FlowHistory.associate = function(models){
+    models.FlowHistory.belongsTo(models.Customer, { foreignKey: 'customerId' });
+    models.FlowHistory.belongsTo(models.Order, {
+      foreignKey: 'typeId',
+      scope: {
+        type: 'Order'
+      }
+    });
+  }
+
+  FlowHistory.histories = function(options, state){
+    return new Promise(function(rvo, rej){
+      FlowHistory.scope(state).findAll(options || {}).then(function(flowHistories) {
+          async.map(flowHistories, function(flowHistory, next){
+            if( flowHistory.type === 'Order' ){
+              flowHistory.getOrder().then(function(order) {
+                flowHistory.source = order
+                next(null, flowHistory)
+              }).catch(function(err){
+                next(err)
+              })
+            }else{
+              flowHistory.getCustomer().then(function(customer) {
+                flowHistory.source = customer
+                next(null, flowHistory)
+              }).catch(function(err){
+                next(err)
+              })
+            }
+          } , function(err, flowHistories){
+            if(err){
+              rej(err)
+            }else{
+              rvo(flowHistories)
+            }
+          })
+        })
+    });
+  }
+
+  FlowHistory.incomeHistories = function(options){
+    return this.histories(options, 'income');
+  }
+
+  FlowHistory.reduceHistories = function(options){
+    return this.histories(options, 'reduce');
+  }
+
+  FlowHistory.prototype.getSource = function(conditions){
+    if(this.type){
+      return this['get' + this.type].call(this, conditions);
+    }
+  }
+
+  FlowHistory.prototype.stateName = function(){
+    switch(this.state){
+      case 1:
+        return "增加"
+      case 0:
+        return "减少"
+    }
+  }
 
   return FlowHistory;
 };

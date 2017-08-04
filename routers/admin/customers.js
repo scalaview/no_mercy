@@ -56,7 +56,7 @@ admin.get("/customers/:id", function(req, res) {
 
 })
 
-admin.post("/customer/:id", function(req, res) {
+admin.post("/customer/:id", adminOnly, function(req, res) {
   async.waterfall([function(next) {
     models.Customer.findById(req.params.id).then(function(customer) {
       if(customer){
@@ -87,9 +87,9 @@ admin.post("/customer/:id", function(req, res) {
   })
 })
 
-admin.post("/customer/traffic/:id", function(req, res) {
+admin.post("/customer/total/:id", adminOnly, function(req, res) {
   var type = req.body.type,
-      amount = parseInt(req.body.num)
+      amount = parseFloat(req.body.num)
   async.waterfall([function(next) {
     models.Customer.findById(req.params.id).then(function(customer) {
       if(customer){
@@ -101,9 +101,9 @@ admin.post("/customer/traffic/:id", function(req, res) {
         }).save().then(function(flowhistory) {
           next(null, customer, flowhistory)
         }).catch(function(err) {
+          console.log(err)
           next(err, customer)
         })
-
       }else{
         next(new Error(404))
       }

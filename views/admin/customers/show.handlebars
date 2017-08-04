@@ -9,37 +9,18 @@
       <div class="col-lg-6">
         <div class="form-group">
           <label>Phone</label>
-          <input class="form-control" placeholder="input phone" name="phone"  disabled value="{{ customer.phone }}">
+          <input class="form-control" placeholder="input phone" name="phone" value="{{ customer.phone }}">
         </div>
 
         <div class="form-group">
-          <label>Remaining Traffic </label>
-          <input class="form-control" placeholder="input remainingTraffic " disabled name="remainingTraffic  " value="{{ customer.remainingTraffic   }}">
-        </div>
-
-        <div class="form-group">
-          <label>用户等级</label>
-          {{ selectTag levelOptions levelCollection customer.levelId }}
+          <label>Total</label>
+          <input class="form-control" placeholder="input remainingTraffic " disabled name="remainingTraffic  " value="{{ customer.total   }}">
         </div>
       </div>
       <div class="col-lg-6">
         <div class="form-group">
           <label>User name</label>
           <input class="form-control" placeholder="input username" name="username"  disabled value="{{ customer.username }}">
-        </div>
-
-        <div class="form-group">
-          <div class="col-lg-6">
-            <label>wechat</label>
-            <input class="form-control" placeholder="input wechat" name="wechat"  disabled value="{{ customer.wechat }}">
-          </div>
-          <div class="col-lg-6">
-            <div class="checkbox" style="padding-top: 20px;">
-              <label>
-                  <input type="checkbox" name="allowGiven" {{ isChecked customer.allowGiven  }} >允许转赠
-              </label>
-            </div>
-          </div>
         </div>
 
         <div class="form-group">
@@ -75,7 +56,7 @@
 <div class='container-fluid'>
   <div class="row">
     <div class="col-lg-6">
-      <form role="form" accept-charset="UTF-8" action="/admin/customer/traffic/{{ customer.id }}" method="POST">
+      <form role="form" accept-charset="UTF-8" action="/admin/customer/total/{{ customer.id }}" method="POST">
         <input type='hidden' name="type" value='1'>
         <div class="form-group">
           <label>增加余额</label>
@@ -91,7 +72,7 @@
       </form>
     </div>
     <div class="col-lg-6">
-      <form role="form" accept-charset="UTF-8" action="/admin/customer/traffic/{{ customer.id }}" method="POST">
+      <form role="form" accept-charset="UTF-8" action="/admin/customer/total/{{ customer.id }}" method="POST">
         <input type='hidden' name="type" value='0'>
         <div class="form-group">
           <label>减少余额</label>

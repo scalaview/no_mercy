@@ -1,6 +1,6 @@
 <div class="row">
   <div class='col-lg-2 pull-right'>
-    <a href="/admin/extractorders/new">
+    <a href="/admin/orders/new">
       <button class="btn btn-primary col-lg-12 btn-large">
         <i class="glyphicon glyphicon-plus"></i> 新建
       </button>
@@ -15,7 +15,7 @@
 </div>
 </div>
 <div class="row">
-  <form role="form" accept-charset="UTF-8" action="/admin/extractorders" method="GET">
+  <form role="form" accept-charset="UTF-8" action="/admin/orders" method="GET">
     <div class="col-lg-3">
       <div class="form-group">
         <label>手机号码</label>
@@ -26,12 +26,6 @@
       <div class="form-group">
         <label>状态</label>
         {{ selectTag stateOptions stateCollection query.state }}
-      </div>
-    </div>
-    <div class="col-lg-3">
-      <div class="form-group">
-        <label>类型</label>
-        {{ selectTag exchangerTypeOptions exchangerTypeCollection query.exchangerType }}
       </div>
     </div>
     <div class="col-lg-3" style="padding-top: 19px;">
@@ -57,11 +51,9 @@
                 <th>手机号码</th>
                 <th></th>
                 <th>用 户</th>
+                <th>套 餐</th>
                 <th>状 态</th>
-                <th>花 费</th>
-                <th>成 本</th>
-                <th>微信支付</th>
-                <th>支付手段</th>
+                <th>金 额</th>
                 <th>获得流量</th>
                 <th>创建时间</th>
                 <th></th>
@@ -73,18 +65,17 @@
                 <tr>
                     <td>{{ phone }}</td>
                     <td>{{ customer.id }}</td>
-                    <td><img src="{{customer.headimgurl}}" onError="this.src='http://placehold.it/380x380';" style="width: 36px;">{{ customer.username }}</td>
+                    <td>{{ customer.username }}</td>
+                    <td>{{ name }}</td>
                     <td>{{ stateName }}</td>
                     <td>{{ total }}</td>
-                    <td>{{ cost }}</td>
                     <td>{{ transactionId }}</td>
-                    <td>{{ chargeTypeTran chargeType }}</td>
                     <td>{{ value }} M</td>
                     <td>
                       {{ strftime createdAt }}
                     </td>
                     <td>
-                      <a href="/admin/extractorders/{{id}}/edit" class="list-group-item">
+                      <a href="/admin/orders/{{id}}/edit" class="list-group-item">
                         <i class="glyphicon glyphicon-pencil"></i>
                       </a>
                     </td>
@@ -96,7 +87,7 @@
         <!-- /.table-responsive -->
       </div>
       <div class="panel-footer">
-          {{pagination extractOrders (addParams '/admin/extractorders' query)}}
+          {{pagination orders (addParams '/admin/orders' query)}}
       </div>
       <!-- /.panel-body -->
     </div>

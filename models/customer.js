@@ -14,8 +14,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.VIRTUAL,
       set: function(val){
         this.setDataValue('password', val);
-        console.log(this.validateToken)
-        console.log(this.makeSalt)
         this.setDataValue('salt', this.makeSalt())
         this.setDataValue('password_hash', this.encryptPassword(this.password));
         this.setDataValue('client_id', this.encryptPassword(config.hostname + this.makeSalt()));
@@ -56,7 +54,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     orderTotal: {
-      type: DataTypes.DECIMAL,
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0.0,
       set: function(val) {

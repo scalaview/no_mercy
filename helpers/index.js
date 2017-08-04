@@ -203,8 +203,8 @@ exports.errHtmlRespone = function(err, res){
   switch(errcode){
   case 40001:
     //没有权限
-    res.render("no_permission")
-    break;
+    res.render("no_permission", { layout: false });
+    return;
   case 404:
     res.send(404)
     break;
@@ -215,7 +215,7 @@ exports.errHtmlRespone = function(err, res){
 }
 
 exports.adminOnly = function(req, res, next){
-  if(res.locals.customer && res.locals.customer.idAdmin()){
+  if(res.locals.customer && res.locals.customer.isAdmin()){
     next()
   }else{
     exports.errHtmlRespone(new Error(40001), res)
@@ -411,11 +411,101 @@ exports.autoCharge = function(order, product){
     })
 }
 
+exports.pagination = function(result, href){
+
+  function isFirst(){
+    return (currentPage == 1)
+  }
+
+  function isLast(){
+    return currentPage == totalpages
+  }
+
+  var source = [
+  '<div class="row">',
+    '<div class="col-sm-12">',
+      '<div class="pull-right dataTables_paginate paging_simple_numbers" id="dataTables-example_paginate">',
+        '<ul class="pagination">',
+          '{{items}}',
+        '</ul>',
+      '</div>',
+    '</div>',
+  '</div>'].join(""),
+    item = ['<li class="paginate_button {{ status }} {{disabled}}" tabindex="0">',
+              '<a href="{{link}}">{{text}}</a>',
+            '</li>'].join(''),
+    template = handlebars.compile(source),
+    itemTemplate = handlebars.compile(item),
+
+    total = result.count,
+    page = result.page,
+    perPage = result.perPage,
+    totalpages = (total % perPage) == 0 ? (total / perPage) : parseInt(total / perPage) + 1,
+    currentPage = parseInt(result.currentPage),
+    items = []
+
+  if(total <= perPage){ return }
+    var startIndex = (currentPage - 5 > 0) ? currentPage - 5 : 0,
+        endIndex = (currentPage + 4 > totalpages) ? totalpages : currentPage + 4
+
+  var data;
+  data = { status: 'previous', disabled: isFirst() ? 'disabled' : null, link: isFirst() ? "#" : addParams(href, {page: 1}), text: "首页"  }
+  items.push(itemTemplate(data))
+
+  for (var i = startIndex; i < endIndex ; i++) {
+    data = { status: (currentPage == (i + 1)) ? "active" : null, link: addParams(href, {page: i+1}), text: (i+1)}
+    items.push(itemTemplate(data))
+  };
+
+  data = { status: 'next', disabled: isLast() ? 'disabled' : null, link: isLast() ? "#" : addParams(href, {page: totalpages}), text: "尾页"  }
+  items.push(itemTemplate(data))
+
+  return template({ items: items.join("").htmlSafe() }).htmlSafe()
+}
+
+exports.isChecked = function(checked){
+  if(typeof checked === 'boolean'){
+    return checked ? "checked" : ""
+  }else if(typeof checked === 'string'){
+    try{
+      return (parseInt(checked) === 1) ? "checked" : ''
+    }catch(e){
+    }
+  }
+}
+
 exports.setPagination = function(result, req){
   result.page = req.query.page || 1,
   result.perPage = req.query.perPage || 15,
   result.currentPage = req.query.page || 1
   return result
+}
+
+exports.addParams = function(href, params){
+  var subFix = '';
+
+  var urlParams = href.split('?')[1],
+      originParams = {}
+  if(urlParams){
+    var queryParams = urlParams.split('&')
+    for (var i = 0; i < queryParams.length; i++) {
+      var tmp = queryParams[i].split('=')
+      if(tmp[1]){
+        originParams[tmp[0]] = tmp[1]
+      }
+    };
+  }
+
+  var paramsAll = _.merge(originParams, params)
+
+  for(var key in paramsAll){
+    subFix = subFix + '&' + key + '=' + paramsAll[key]
+  }
+
+  if(href.indexOf('?') !== -1 ){
+    href = href.split('?')[0]
+  }
+  return (subFix.length > 0) ? href + "?" + subFix.substring(1, subFix.length) : href
 }
 
 exports.offset = function(page, prePage){
@@ -474,7 +564,6 @@ exports.tipSource = function(source, data){
   }
 }
 
-
 exports.successTips = function(info){
   var source = ['<div class="alert alert-success alert-dismissable">',
                   '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>',
@@ -489,4 +578,36 @@ exports.errTips = function(err) {
                   '{{text}}',
                 '</div>'].join('')
   return exports.tipSource(source, err)
+}
+
+exports.selectTag = function(options, collection, selected) {
+  var source = [
+        '<select {{#if options.style}} style="{{options.style}}" {{/if}} {{#if options.class}} class="{{options.class}}" {{else}} class="col-xs-12 col-lg-12 select2" {{/if}} {{#if options.id}} id="{{options.id}}" {{/if}} {{#if options.name}} name="{{options.name}}" {{/if}} {{#if options.disabled}} disabled {{/if}} >',
+        '{{items}}',
+        '</select>'
+      ].join(""),
+      optionSource = '<option {{#if value }} value="{{value}}" {{/if}} {{selected}}>{{name}}</option>',
+      template = handlebars.compile(source),
+      optionSourceTemplate = handlebars.compile(optionSource),
+      selected = selected || '',
+      optionHtml = []
+
+  if(collection instanceof Array){
+    if(options.includeBlank){
+      optionHtml.push(optionSourceTemplate())
+    }
+    for (var i = 0; i < collection.length ; i++) {
+      if(collection[i] instanceof Array){
+        var data = { value: collection[i][0].toString(), name: collection[i][1], selected: selected.toString() === collection[i][0].toString() ? "selected" : null }
+      }else if(collection[i] instanceof Object){
+        var data = { value: collection[i].value.toString(), name: collection[i].name, selected: selected.toString() ===  collection[i].value.toString() ? "selected" : null }
+      }
+      optionHtml.push(optionSourceTemplate(data))
+    };
+
+    var html = template({ options: options,  items: optionHtml.join("").htmlSafe() })
+    return html.htmlSafe()
+  }else{
+    return template({ options: options }).htmlSafe()
+  }
 }
