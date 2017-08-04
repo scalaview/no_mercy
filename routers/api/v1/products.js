@@ -8,7 +8,7 @@ var errRespone = helpers.errRespone
 
 app.get("/product/lists", validateToken, function(req, res) {
   var access_token = req.query.access_token,
-      customer = req.customer
+      customer = res.locals.customer
 
   if(!access_token) {
     errRespone(new Error(50012), res)

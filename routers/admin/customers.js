@@ -8,36 +8,6 @@ var config = require("../../config")
 var errHtmlRespone = helpers.errHtmlRespone
 var adminOnly = helpers.adminOnly
 
-// login filter
-var skipUrls = [ '^\/admin\/login[\/|\?|\#]\?.*', '^\/admin\/register[\/|\?|\#]\?.*']
-
-admin.all("*", function(req, res, next) {
-  var url = req.originalUrl
-  if(req.session.customer_id){
-    models.Customer.findOne({ where: { id: req.session.customer_id } }).then(function(customer) {
-      if(customer){
-        req.customer = customer
-        next();
-      }else{
-        res.redirect("/admin/login?to=" + encodeUrl);
-      }
-    }).catch(function(err){
-      errHtmlRespone(err, res)
-    })
-  }else{
-    for (var i = skipUrls.length - 1; i >= 0; i--) {
-      var match = req.originalUrl.match(skipUrls[i]);
-      if(match !== null){
-        next()
-        return
-      }
-    };
-    var encodeUrl = new Buffer(url).toString('base64');
-    return res.redirect("/admin/login?to=" + encodeUrl);
-  }
-})
-
-
 admin.get('/customers', adminOnly, function(req, res) {
   var params = {}
   if(req.query.phone !== undefined && req.query.phone.present()){

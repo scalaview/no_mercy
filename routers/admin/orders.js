@@ -8,7 +8,7 @@ var errHtmlRespone = helpers.errHtmlRespone
 
 admin.get("/orders", function(req, res) {
   var result,
-      customer = req.customer
+      customer = res.locals.customer
 
   async.waterfall([function(next) {
     var params = {}

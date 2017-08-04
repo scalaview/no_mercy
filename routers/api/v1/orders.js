@@ -18,7 +18,7 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
       client_id = body.client_id,
       sign = body.sign,
       access_token = body.access_token,
-      customer = req.customer
+      customer = req.locals.customer
 
   if(!(phone && product_id && sign && access_token)){
     helpers.errRespone(new Error(50003), res)
@@ -109,7 +109,7 @@ app.get("/order/detail", validateToken, function(req, res) {
   var access_token = req.query.access_token,
       sign = req.query.sign,
       order_id = req.query.order_id,
-      customer = req.customer
+      customer = res.locals.customer
 
   if(!(access_token && sign && order_id)){
     errRespone(new Error(50010), res)
@@ -167,7 +167,7 @@ app.get("/order/lists", validateToken, function(req, res) {
       end_time = req.query.end_time,
       page = req.query.page || 1,
       perPage = 30,
-      customer = req.customer
+      customer = res.locals.customer
 
   if(!(access_token && sign && start_time && end_time && page)){
     errRespone(new Error(50013), res)

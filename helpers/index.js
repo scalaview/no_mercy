@@ -1,3 +1,4 @@
+'use strict';
 var fs = require('fs')
 var path = require('path')
 var config = require("../config")
@@ -214,7 +215,7 @@ exports.errHtmlRespone = function(err, res){
 }
 
 exports.adminOnly = function(req, res, next){
-  if(req.customer && req.customer.idAdmin()){
+  if(res.locals.customer && res.locals.customer.idAdmin()){
     next()
   }else{
     exports.errHtmlRespone(new Error(40001), res)
@@ -231,7 +232,7 @@ exports.requireLogin = function(req, res, next) {
   if (req.session.customer_id) {
     models.Customer.findOne({ where: { id: req.session.customer_id } }).then(function(customer) {
       if(customer){
-        req.customer = customer
+        res.locals.customer = customer
         next();
       }else{
         res.redirect("/admin/login?to=" + encodeUrl);
@@ -254,11 +255,11 @@ exports.requireAuth = function(req, res, next) {
       if(customer){
         var now = (new Date()).getTime()
         if(customer.expires_in && customer.expires_in.getTime() > (now + 30000) && customer.access_token){
-          req.customer = customer
+          res.locals.customer = customer
           next()
         }else{
           customer.generateAccessToken().then(function(customer){
-            req.customer = customer
+            res.locals.customer = customer
             next()
           }).catch(function(err){
             exports.errRespone(err, req)
@@ -290,11 +291,11 @@ exports.requireAuth = function(req, res, next) {
     if(customer){
       var now = (new Date()).getTime()
       if(customer.expires_in && customer.expires_in.getTime() > (now + 30000) && customer.access_token){
-        req.customer = customer
+        res.locals.customer = customer
         next()
       }else{
         customer.generateAccessToken().then(function(customer){
-          req.customer = customer
+          res.locals.customer = customer
           next()
         }).catch(function(err){
           exports.errRespone(err, req)
@@ -318,7 +319,7 @@ exports.validateToken = function(req, res, next){
           id: 2
         }
     }).then(function(customer){
-      req.customer = customer
+      res.locals.customer = customer
       next()
       return
     }).catch(function(err){
@@ -335,7 +336,7 @@ exports.validateToken = function(req, res, next){
   }
    models.Customer.validateToken(models, access_token).then(function(customer){
       if(customer){
-        req.customer = customer
+        res.locals.customer = customer
         next()
       }else{
         exports.errRespone(new Error(50004), res)
@@ -422,4 +423,70 @@ exports.offset = function(page, prePage){
     return (page - 1) * prePage
   }
   return 0
+}
+
+exports.if_eq = function(a, b, opts) {
+  if(a == b) // Or === depending on your needs
+    return opts.fn(this);
+  else
+    return opts.inverse(this);
+}
+
+exports.ip = function(req){
+  return (req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.connection.remoteAddress)
+}
+
+exports.css = function() {
+  var css = connectAssets.options.helperContext.css.apply(this, arguments);
+  return new handlebars.SafeString(css);
+};
+
+exports.js = function() {
+  var js = connectAssets.options.helperContext.js.apply(this, arguments);
+  return new handlebars.SafeString(js);
+};
+
+
+exports.assetPath = function() {
+  var assetPath = connectAssets.options.helperContext.assetPath.apply(this, arguments);
+  return new handlebars.SafeString(assetPath);
+};
+
+
+
+exports.htmlSafe = function(html) {
+  if(html){
+    return html.htmlSafe()
+  }
+}
+
+exports.tipSource = function(source, data){
+  if( typeof data === 'string' ){
+    return source.format({ text: data }).htmlSafe()
+  }else if( data instanceof Array && data.length > 0){
+    return source.format({ text: data.join('<br>') }).htmlSafe()
+  }else if( typeof data === 'object' && data.length > 0 ){
+    var html = []
+    for(var key in data){
+      html.push( data[key] )
+    }
+    return source.format({ text: html.join('') }).htmlSafe()
+  }
+}
+
+
+exports.successTips = function(info){
+  var source = ['<div class="alert alert-success alert-dismissable">',
+                  '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>',
+                  '{{text}}',
+                '</div>'].join('')
+  return exports.tipSource(source, info)
+}
+
+exports.errTips = function(err) {
+  var source = ['<div class="alert alert-danger alert-dismissable">',
+                  '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>',
+                  '{{text}}',
+                '</div>'].join('')
+  return exports.tipSource(source, err)
 }

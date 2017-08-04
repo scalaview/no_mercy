@@ -22,7 +22,7 @@ connectAssets = require("connect-assets")({
   paths: [
     __dirname + '/public/javascript',
     __dirname + '/public/stylesheets',
-    __dirname + '/public/bower_components',
+    __dirname + '/node_modules',
     "assets"
   ],
   buildDir: "public/assets"

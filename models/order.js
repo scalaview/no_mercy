@@ -1,8 +1,8 @@
 'use strict';
 var helpers = require("../helpers")
 var config = require("../config")
-var recharger = require("../recharger")
-var ChongRecharger = recharger.ChongRecharger
+// var recharger = require("../recharger")
+// var ChongRecharger = recharger.ChongRecharger
 
 module.exports = function(sequelize, DataTypes) {
   var Order = sequelize.define('Order', {

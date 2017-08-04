@@ -6,7 +6,6 @@ var async = require("async")
 var _ = require('lodash')
 var config = require(process.env.PWD + "/config")
 var autoCharge = helpers.autoCharge
-var recharger = require("../../recharger")
 
 admin.get("/extractorders", function(req, res) {
   var result;
