@@ -93,12 +93,7 @@ admin.post("/customer/total/:id", adminOnly, function(req, res) {
   async.waterfall([function(next) {
     models.Customer.findById(req.params.id).then(function(customer) {
       if(customer){
-        models.FlowHistory.build({
-          customerId: customer.id,
-          state: type,
-          amount: amount,
-          comment: req.body.comment
-        }).save().then(function(flowhistory) {
+        customer.takeFlowHistory(models, null, amount, req.body.comment, type=='1' ? models.FlowHistory.STATE.ADD : models.FlowHistory.STATE.REDUCE).then(function(flowhistory) {
           next(null, customer, flowhistory)
         }).catch(function(err) {
           console.log(err)

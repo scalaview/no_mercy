@@ -106,35 +106,36 @@ admin.get("/orders/:id", function(req, res) {
 
 
 admin.get("/orders/new", function(req, res) {
-  var customer = res.locals.customer;
-  async.waterfall([function(next){
-    var conditions = {}
-    if(!customer.isAdmin()){
-      conditions["display"] = true;
-    }
-    models.Product.findAll({
-      where: conditions
-    }).then(function(products) {
-      next(null, products)
-    }).catch(function(err) {
-      next(err)
-    })
-  }, function(products, outnext) {
-    async.map(products, function(trafficPlan, next) {
-      next(null, [trafficPlan.id, trafficPlan.name])
-    }, function(err, trafficPlanCollection) {
-      outnext(null, trafficPlanCollection)
-    })
-  }], function(err, trafficPlanCollection) {
-    var extractOrder = models.ExtractOrder.build({}),
-        trafficPlanOptions = { name: 'trafficPlanId', id: 'trafficPlanId', class: 'select2 col-lg-12 col-xs-12' }
-    res.render("admin/extractorders/new", {
-      extractOrder: extractOrder,
-      trafficPlanOptions: trafficPlanOptions,
-      trafficPlanCollection: trafficPlanCollection,
-      path: '/admin/extractorder'
-    })
-  })
+  // var customer = res.locals.customer;
+  // async.waterfall([function(next){
+  //   var conditions = {}
+  //   if(!customer.isAdmin()){
+  //     conditions["display"] = true;
+  //   }
+  //   models.Product.findAll({
+  //     where: conditions
+  //   }).then(function(products) {
+  //     next(null, products)
+  //   }).catch(function(err) {
+  //     next(err)
+  //   })
+  // }, function(products, outnext) {
+  //   async.map(products, function(trafficPlan, next) {
+  //     next(null, [trafficPlan.id, trafficPlan.name])
+  //   }, function(err, trafficPlanCollection) {
+  //     outnext(null, trafficPlanCollection)
+  //   })
+  // }], function(err, trafficPlanCollection) {
+  //   var extractOrder = models.ExtractOrder.build({}),
+  //       trafficPlanOptions = { name: 'trafficPlanId', id: 'trafficPlanId', class: 'select2 col-lg-12 col-xs-12' }
+  //   res.render("admin/extractorders/new", {
+  //     extractOrder: extractOrder,
+  //     trafficPlanOptions: trafficPlanOptions,
+  //     trafficPlanCollection: trafficPlanCollection,
+  //     path: '/admin/extractorder'
+  //   })
+  // })
+
 })
 
 admin.post("/extractorder", function(req, res) {

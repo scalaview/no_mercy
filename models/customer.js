@@ -67,6 +67,12 @@ module.exports = function(sequelize, DataTypes) {
     },
     enable: {
       type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true
+    },
+    is_admin: {
+      type: DataTypes.VIRTUAL,
+      get: function(){
+        return this.isAdmin();
+      }
     }
   });
 
@@ -137,7 +143,7 @@ module.exports = function(sequelize, DataTypes) {
     return this.role && this.role == "admin"
   }
 
-  Customer.prototype.takeFlowHistory = function(models, amount, comment, state){
+  Customer.prototype.takeFlowHistory = function(models, target, amount, comment, state){
     var customer = this
     return new Promise(function(rov, rej){
       if(state !== models.FlowHistory.STATE.ADD && state !== models.FlowHistory.STATE.REDUCE){
@@ -148,6 +154,10 @@ module.exports = function(sequelize, DataTypes) {
         state: state,
         amount: amount,
         comment: comment
+      }
+      if(target){
+        params['type'] = target.className
+        params['typeId'] = target.id
       }
 
       models.FlowHistory.build(params).save().then(function(flowHistory){
@@ -174,7 +184,7 @@ module.exports = function(sequelize, DataTypes) {
           rej(new Error("剩余流量币不足"))
         }
       }, function(customer, order, next){
-        customer.takeFlowHistory(models, order.total, "购买流量" + order.name + "至" + order.phone + " 支付成功", models.FlowHistory.STATE.REDUCE).then(function(flowHistory){
+        customer.takeFlowHistory(models, order, order.total, "购买流量" + order.name + "至" + order.phone + " 支付成功", models.FlowHistory.STATE.REDUCE).then(function(flowHistory){
           next(null, customer, order, flowHistory)
         }).catch(function(err){
           next(err)
@@ -206,7 +216,7 @@ module.exports = function(sequelize, DataTypes) {
         }
       }, function(customer, order, next){
         var msg = "提取" + order.name + "至" + order.phone + "失败。原因：" + order.message
-        customer.takeFlowHistory(models, order.total, msg, models.FlowHistory.STATE.ADD).then(function(flowHistory){
+        customer.takeFlowHistory(models, order, order.total, msg, models.FlowHistory.STATE.ADD).then(function(flowHistory){
           next(null, customer, order, flowHistory)
         }).catch(function(err){
           next(err)

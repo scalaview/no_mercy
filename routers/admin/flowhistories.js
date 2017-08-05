@@ -4,6 +4,7 @@ var models  = require('../../models')
 var helpers = require("../../helpers")
 var async = require("async")
 var _ = require('lodash')
+var errHtmlRespone = helpers.errHtmlRespone
 
 admin.get("/flowhistories", function(req, res){
   var result,
@@ -52,14 +53,13 @@ admin.get("/flowhistories", function(req, res){
     })
   }, function(flowhistories, outnext) {
     async.map(flowhistories, function(flowHistory, next) {
-
       if(flowHistory.getSource()){
         flowHistory.getSource().then(function(source) {
-
+          console.log(source)
             if(source){
               switch(source.className()){
                 case "Order":
-                  flowHistory.order = source
+                  flowHistory.source = source
                   break;
               }
               next(null, flowHistory)
@@ -79,11 +79,11 @@ admin.get("/flowhistories", function(req, res){
     })
   }, function(flowhistories, next){
     models.Customer.findAll({
-      attributes: ["id", "phone"]
+      attributes: ["id", "username"]
     }).then(function(customers) {
       var customerCollection = []
       for (var i = 0; i < customers.length; i++) {
-        customerCollection.push( [customers[i].id, customers[i].phone] )
+        customerCollection.push( [customers[i].id, customers[i].username] )
       };
       next(null, flowhistories, customerCollection)
     }).catch(function(err) {
@@ -91,14 +91,13 @@ admin.get("/flowhistories", function(req, res){
     })
   }], function(err, flowhistories, customerCollection) {
     if(err){
-      console.log(err)
-      res.send(500)
+      errHtmlRespone(err, res)
     }else{
       var customerOptions = { name: 'customerId', class: "select2 col-lg-12 col-xs-12", includeBlank: true },
           stateOptions = { name: 'state', class: 'select2 col-xs-12 col-lg-12', includeBlank: true },
           stateCollection = [ [models.FlowHistory.STATE.ADD, "增加"], [models.FlowHistory.STATE.REDUCE, "减少"] ],
           typeOptions = { name: 'type', class: 'select2 col-xs-12 col-lg-12', includeBlank: true },
-          typeCollection = [ ["ExtractOrder", "流量订单"] ]
+          typeCollection = [ ["Order", "流量订单"] ]
 
       result.rows = flowhistories
       result = helpers.setPagination(result, req)

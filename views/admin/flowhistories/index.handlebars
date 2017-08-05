@@ -1,12 +1,14 @@
 <hr>
 <div class="row">
   <form role="form" accept-charset="UTF-8" action="/admin/flowhistories" method="GET">
+    {{#if customer.is_admin }}
     <div class="col-lg-3">
       <div class="form-group">
         <label>用户</label>
         {{ selectTag customerOptions customerCollection query.customerId }}
       </div>
     </div>
+    {{/if}}
     <div class="col-lg-3">
       <div class="form-group">
         <label>状态</label>
@@ -40,31 +42,34 @@
             <thead>
               <tr>
                 <th></th>
-                <th>用户</th>
-                <th>状态</th>
+                {{#if customer.is_admin }}
+                  <th>用户</th>
+                {{/if}}
                 <th>数目</th>
                 <th>内容</th>
+                <th>来源</th>
                 <th>创建时间</th>
               </tr>
             </thead>
             <tbody>
               {{#each flowhistories.rows}}
                 <tr>
-                    <td>{{ customerId }}</td>
-                    <td><img src="{{customer.headimgurl}}" onError="this.src='http://placehold.it/380x380';" style="width: 36px;">{{ customer.username }}</td>
-                    <td>{{ flowhistorySourceLink source }}</td>
+                    <td>
+                      {{#if customer.is_admin }}
+                        {{ customerId }}
+                      {{/if}}
+                    </td>
+                    {{#if customer.is_admin }}
+                      <td>
+                        {{ customer.username }}
+                      </td>
+                    {{/if}}
                     <td>{{ amountType state amount }}</td>
                     <td>{{ comment }}</td>
+                    <td>{{ flowhistorySourceLink source }}</td>
                     <td>
                       {{ strftime createdAt }}
                     </td>
-                    {{#if ../customer.isAdmin }}
-                      <td>
-                        <a href="/admin/flowhistories/{{id}}/delete" class="list-group-item" onclick="return confirm('你确定需要删除这条记录吗？')">
-                          <i class="glyphicon glyphicon-trash"></i>
-                        </a>
-                      </td>
-                    {{/if}}
                 </tr>
               {{/each}}
             </tbody>
