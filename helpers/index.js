@@ -15,10 +15,7 @@ String.prototype.htmlSafe = function(){
 }
 
 String.prototype.renderTemplate = function(options){
-  if(!this.compileTemplate){
-    this.compileTemplate = handlebars.compile(this.toString())
-  }
-  return this.compileTemplate(options)
+  return handlebars.compile(this.toString())(options)
 }
 
 String.prototype.format = String.prototype.renderTemplate
@@ -412,7 +409,7 @@ exports.autoCharge = function(order, product){
 }
 
 exports.pagination = function(result, href){
-
+  if(!result) return;
   function isFirst(){
     return (currentPage == 1)
   }
@@ -611,3 +608,33 @@ exports.selectTag = function(options, collection, selected) {
     return template({ options: options }).htmlSafe()
   }
 }
+
+
+exports.flowhistorySourceLink = function(source, options){
+  if(!source){
+    return
+  }
+  var link = ['<a  {{#if class}} class="{{class}}" {{/if}} {{#if id}} id="{{id}}" {{/if}} {{#if href}} href="{{href}}" {{/if}}>',
+                '{{#if text}} {{text}} {{/if}}',
+              '</a>'].join("")
+  options.text =  source.className() + ": " + source.id
+
+  if(source.className() === "Order"){
+    options.href = "/admin/orders/" + source.id + "/edit"
+    return link.renderTemplate(options).htmlSafe()
+  }else if(source.className() === "Customer"){
+    options.href = "/admin/customers/" + source.id
+    return link.renderTemplate(options).htmlSafe()
+  }
+}
+
+
+exports.amountType = function(type, amount){
+  if(type === 1 ){
+    return ['<span class="btn-warning">+ ', amount, ' </span> '].join("").htmlSafe()
+  }else if(type ===  0){
+    return ['<span class="btn-info">- ', amount, ' </span> '].join("").htmlSafe()
+  }
+}
+
+

@@ -106,14 +106,21 @@ admin.get("/orders/:id", function(req, res) {
 
 
 admin.get("/orders/new", function(req, res) {
+  var customer = res.locals.customer;
   async.waterfall([function(next){
-    models.Product.scope("forSelect").findAll().then(function(trafficPlans) {
-      next(null, trafficPlans)
+    var conditions = {}
+    if(!customer.isAdmin()){
+      conditions["display"] = true;
+    }
+    models.Product.findAll({
+      where: conditions
+    }).then(function(products) {
+      next(null, products)
     }).catch(function(err) {
       next(err)
     })
-  }, function(trafficPlans, outnext) {
-    async.map(trafficPlans, function(trafficPlan, next) {
+  }, function(products, outnext) {
+    async.map(products, function(trafficPlan, next) {
       next(null, [trafficPlan.id, trafficPlan.name])
     }, function(err, trafficPlanCollection) {
       outnext(null, trafficPlanCollection)

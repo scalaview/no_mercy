@@ -6,10 +6,13 @@ var async = require("async")
 var _ = require('lodash')
 
 admin.get("/flowhistories", function(req, res){
-  var result;
+  var result,
+      customer = res.locals.customer;
   async.waterfall([function(next) {
     var params = {}
-    if(req.query.customerId !== undefined && req.query.customerId.present()){
+    if(!customer.isAdmin()){
+      params = _.merge(params, { customerId: customer.id })
+    }else if(req.query.customerId !== undefined && req.query.customerId.present()){
       params = _.merge(params, { customerId: req.query.customerId })
     }
     if(req.query.type !== undefined && req.query.type.present()){
@@ -55,11 +58,8 @@ admin.get("/flowhistories", function(req, res){
 
             if(source){
               switch(source.className()){
-                case "ExtractOrder":
-                  flowHistory.extractOrder = source
-                  break;
-                case "Apk":
-                  flowHistory.apk = source
+                case "Order":
+                  flowHistory.order = source
                   break;
               }
               next(null, flowHistory)
@@ -116,32 +116,5 @@ admin.get("/flowhistories", function(req, res){
   })
 })
 
-admin.get("/flowhistories/:id/delete", function(req, res){
-  async.waterfall([function(next){
-    if(res.locals.user && helpers.is_admin(res.locals.user)){
-      next(null)
-    }else{
-      next(new Error("permission denied"))
-    }
-  }, function(next) {
-    models.FlowHistory.findById(req.params.id).then(function(flowhistory){
-      next(null, flowhistory.destroy({ force: true }))
-    }).catch(function(err){
-      next(err)
-    })
-  }], function(err, is_done){
-    if(err){
-      console.log(err)
-      res.redirect('/500')
-    }else{
-      if(is_done){
-        req.flash("info", "delete succes")
-      }else{
-        req.flash("error", "delete fail")
-      }
-      res.redirect("back")
-    }
-  })
-})
 
 module.exports = admin;

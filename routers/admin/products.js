@@ -28,7 +28,7 @@ admin.get('/products', function(req, res) {
       errHtmlRespone(err)
     }else{
       var providerOptions = { name: "providerId", class: 'select2 editChoose col-lg-12 col-xs-12' },
-        providerCollection = models.product.PROVIDERARRAY,
+        providerCollection = models.Product.PROVIDERARRAY,
 
       result = helpers.setPagination(products, req)
       res.render('admin/products/index', {
@@ -47,14 +47,18 @@ admin.get('/products/new', adminOnly, function(req, res) {
     if(err){
       errHtmlRespone(err, res)
     }else{
-      var product = models.product.build(),
+      var product = models.Product.build(),
           providerOptions = { name: "providerId", class: 'select2 col-lg-12 col-xs-12' },
-          providerCollection = models.product.PROVIDERARRAY
+          providerCollection = models.Product.PROVIDERARRAY,
+          typeOptions = { name: "type", class: 'select2 col-lg-12 col-xs-12' },
+          typeCollection = models.Product.TYPEARRAY
 
       res.render('admin/products/new', {
         product: product,
         providerOptions: providerOptions,
         providerCollection: providerCollection,
+        typeOptions: typeOptions,
+        typeCollection: typeCollection,
         path: '/admin/product'
       })
     }
@@ -71,11 +75,11 @@ admin.post('/product', adminOnly, function(req, res) {
   }
 
   async.waterfall([function(next) {
-    models.product.build(params).save().then(function(product) {
+    models.Product.build(params).save().then(function(product) {
       if(product){
         next(null, product)
       }else{
-        next(new Error("err"))
+        next(new Error("save product invalidate"))
       }
     }).catch(function(err) {
       next(err)
@@ -94,7 +98,7 @@ admin.post('/product', adminOnly, function(req, res) {
 
 admin.get('/products/:id/edit', adminOnly, function(req, res) {
   async.waterfall([function(next) {
-    models.product.findById(req.params.id).then(function(product) {
+    models.Product.findById(req.params.id).then(function(product) {
       next(null, product)
     }).catch(function(err) {
       next(err)
@@ -104,12 +108,16 @@ admin.get('/products/:id/edit', adminOnly, function(req, res) {
       errHtmlRespone(err, res)
     }else{
       var providerOptions = { name: "providerId", class: 'select2 col-lg-12 col-xs-12' },
-          providerCollection = models.product.PROVIDERARRAY
+          providerCollection = models.Product.PROVIDERARRAY,
+          typeOptions = { name: "type", class: 'select2 col-lg-12 col-xs-12' },
+          typeCollection = models.Product.TYPEARRAY
 
       res.render('admin/products/new', {
           product: product,
           providerOptions: providerOptions,
           providerCollection: providerCollection,
+          typeOptions: typeOptions,
+          typeCollection: typeCollection,
           path: '/admin/product/' + product.id
         })
     }
@@ -118,7 +126,7 @@ admin.get('/products/:id/edit', adminOnly, function(req, res) {
 
 admin.get('/products/:id', function(req, res) {
   async.waterfall([function(next) {
-    models.product.findById(req.params.id).then(function(product) {
+    models.Product.findById(req.params.id).then(function(product) {
       next(null, product)
     }).catch(function(err) {
       next(err)
@@ -142,7 +150,7 @@ admin.post('/product/:id', function(req, res){
     params['display'] = false
   }
   async.waterfall([function(next) {
-    models.product.findById(req.params.id).then(function(product) {
+    models.Product.findById(req.params.id).then(function(product) {
       next(null, product)
     }).catch(function(err) {
       next(err)

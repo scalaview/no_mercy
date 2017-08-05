@@ -1,6 +1,6 @@
 <div class="row">
   <div class='col-lg-2 pull-right'>
-    <a href="/admin/trafficplans/new">
+    <a href="/admin/products/new">
       <button class="btn btn-primary col-lg-12 btn-large">
         <i class="glyphicon glyphicon-plus"></i> 新建
       </button>
@@ -20,14 +20,14 @@
           <table class="table table-striped">
             <thead>
               <tr>
-                  <th>标题</th>
+                  <th>名 称</th>
                   <th>接口提供商</th>
+                  <th>省份</th>
                   <th>花费</th>
                   <th>成本</th>
                   <th>流量(M)</th>
                   <th>是否显示</th>
                   <th>提供商</th>
-                  <th>分组</th>
                   <th></th>
               </tr>
             </thead>
@@ -36,7 +36,8 @@
                 <tr>
                     <td>{{ name }}</td>
                     <td>{{ apiProvider type }}</td>
-                    <td>{{ cost }}</td>
+                    <td>{{ province }}</td>
+                    <td>{{ price }}</td>
                     <td>{{ purchasePrice }}</td>
                     <td>{{ value }}</td>
                     <td>
@@ -48,11 +49,8 @@
                     <td data-id="{{id}}" class="col-lg-2">
                       {{ selectTag ../providerOptions ../providerCollection providerId }}
                     </td>
-                    <td data-id="{{id}}" class="col-lg-2">
-                      {{ selectTag ../trafficgroupsOptions ../trafficgroupsCollection trafficGroupId }}
-                    </td>
                     <td>
-                      <a href="/admin/trafficplans/{{id}}/edit" class="list-group-item">
+                      <a href="/admin/products/{{id}}/edit" class="list-group-item">
                         <i class="glyphicon glyphicon-pencil"></i>
                       </a>
                     </td>
@@ -67,7 +65,7 @@
       </div>
 
       <div class="panel-footer">
-          {{pagination trafficPlans '/admin/trafficplans'}}
+          {{pagination products '/admin/trafficplans'}}
       </div>
       <!-- /.panel-body -->
     </div>

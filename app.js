@@ -159,6 +159,11 @@ app.use(function(err, req, res, next){
 });
 
 
+admin.use(function (req, res, next) {
+  res.locals.info = req.flash('info');
+  res.locals.err = req.flash('err');
+  next();
+});
 
 var server = app.listen(app.get('port'), function () {
   var host = server.address().address;
