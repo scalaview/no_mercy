@@ -248,4 +248,14 @@ app.get("/order/lists", validateToken, function(req, res) {
 })
 
 
+app.get('/phone/data', validateToken, function(req, res) {
+  if(!req.query.phone){
+    res.json({ msg: '请输入手机号码', code: 0 })
+    return
+  }
+  request('http://cx.shouji.360.cn/phonearea.php?number=' + req.query.phone).pipe(res)
+})
+
+
+
 module.exports = app;

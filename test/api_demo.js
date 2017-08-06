@@ -80,10 +80,31 @@ function order(accessToken){
   });
 }
 
+function phone_data(accessToken, phone){
+  return new Promise(function(rvo, rej){
+    request.get({url: "http://localhost:3008/api/v1/phone/data?phone="+phone+"&access_token="+accessToken}, function (error, res) {
+      if (!error && res.statusCode == 200) {
+        console.log(res.body)
+        var data = res.body
+        rvo(data)
+      }else{
+        rej(error)
+      }
+    });
+  })
+}
+
 function main(){
   async.waterfall([function(next){
     auth().then(function(data){
       next(null, data.accessToken)
+    }).catch(function(err){
+      next(err)
+    })
+  }, function(accessToken, next){
+    phone_data(accessToken, "13823212465").then(function(data){
+      console.log(JSON.parse(data))
+      next(null, accessToken)
     }).catch(function(err){
       next(err)
     })
