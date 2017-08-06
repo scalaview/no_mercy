@@ -176,15 +176,13 @@ ChongRecharger.prototype._rechargeOrder = function(access_token, phone, productI
           method: "POST",
           qs: signParams
         }
-
+        console.log(options)
     return new Promise(function(rvo, rej){
       request(options, function (error, res) {
         if (!error && res.statusCode == 200) {
-          if(successCallback){
-            console.log(res.body)
-            var data = JSON.parse(res.body)
-            rvo(data)
-          }
+          console.log(res.body)
+          var data = JSON.parse(res.body)
+          rvo(data)
         }else{
           rej(error)
         }
@@ -192,12 +190,12 @@ ChongRecharger.prototype._rechargeOrder = function(access_token, phone, productI
     });
 }
 
-ChongRecharger.prototype._rechargeOrder = function(models, phone, productId, callbackUrl){
+ChongRecharger.prototype.rechargeOrder = function(models, phone, productId, callbackUrl){
   var that = this
 
   return new Promise(function(rvo, rej){
     that.getAccessToken(models).then(function(token){
-      that._rechargeOrder(token.accessToken).then(function(data){
+      that._rechargeOrder(token.accessToken, phone, productId, callbackUrl).then(function(data){
         rvo(data)
       }).catch(function(err){
         rej(err)

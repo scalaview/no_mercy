@@ -30,7 +30,7 @@ app.post("/customer/create", function(req, res) {
 })
 
 app.post("/auth/token", function(req, res) {
-  var body = req.rawBody,
+  var body = req.rawBody || req.body,
       client_id = body.client_id,
       client_secret = body.client_secret,
       grant_type = body.grant_type

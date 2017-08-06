@@ -1,4 +1,6 @@
 module.exports = {
   session_secret: "no mercy 20170803",
-  port: 3008
+  port: 3008,
+  xh_client_secret: "",
+  xh_client_id: ""
 }

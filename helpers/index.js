@@ -8,7 +8,8 @@ var handlebars = require('handlebars')
 var models  = require('../models')
 var async = require("async")
 var crypto = require('crypto')
-
+var Promise = require("bluebird");
+var request = require("request")
 
 String.prototype.htmlSafe = function(){
   return new handlebars.SafeString(this.toString())
@@ -128,10 +129,31 @@ exports.strftime = function(dateTime, format){
 }
 
 exports.randomInt = function(){
-  Math.round((new Date().valueOf() * Math.random()))
+  return Math.round((new Date().valueOf() * Math.random()))
 }
 
+exports.formatQueryParams = function(params, urlencode){
+  var keys = Object.keys(params),
+      i, len = keys.length;
+  var tmpParams = []
+  keys.sort();
 
+  for (i = 0; i < len; i++) {
+    var key = keys[i],
+        value = params[key]
+    if(urlencode){
+      value = encodeURI(value)
+    }
+    tmpParams.push(key + "=" + value)
+  }
+  return tmpParams.join("&")
+}
+
+exports.sign = function(params){
+  var formatParams = exports.formatQueryParams(params, false),
+      sha1Str = crypto.createHash('sha1').update(formatParams).digest('hex')
+  return sha1Str.toUpperCase()
+}
 
 exports.errRespone = function(err, res){
   console.log(err.message)
@@ -324,9 +346,15 @@ exports.validateToken = function(req, res, next){
     })
     return
   }
-
-  var body = req.rawBody || req.body,
-      access_token = body.access_token
+  if(req.method == 'GET'){
+    var body = req.query
+  }else if(req.method == 'POST'){
+    var body = req.rawBody || req.body
+  }else{
+    exports.errRespone(new Error(50003), res)
+    return
+  }
+    var access_token = body.access_token
   if(!access_token){
     exports.errRespone(new Error(50003), res)
     return
@@ -365,22 +393,40 @@ exports.doCallBack = function(order, errcode, msg, time){
   var options = {
         uri: order.callbackUrl,
         method: "POST",
-        qs: params
+        json: params
       }
   console.log("callbackUrl:")
   console.log(options)
-  request(options, function (error, res) {
-    if (!error && res.statusCode == 200) {
-      console.log("callback return")
+  var i = 0;
+  function _doCallBack(options, order){
+    request(options, function (error, res) {
+      i++;
+      if (!error && res.statusCode == 200) {
+        console.log("callback return")
         console.log(res.body)
-        var data = JSON.parse(res.body)
-    }else{
-    }
-  });
+        order.updateAttributes({
+          callbackDone: true
+        }).then(function(order){
+          console.log("finish");
+          return
+        }).catch(function(err){
+          console.log(err);
+          return;
+        })
+      }else if(i<=time){
+        setTimeout(function(){
+          _doCallBack(options, order)
+        }, 3000)
+      }
+    });
+  }
+  setTimeout(function(){
+    _doCallBack(options, order)
+  }, 3000)
 }
 
 exports.autoCharge = function(order, product){
-  order.autoRecharge(product).then(function(data) {
+  order.autoRecharge(models, product).then(function(data) {
       console.log(data)
       if(product.type == models.Product.TYPE['曦和流量']){
         if(data.errcode == 0){

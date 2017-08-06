@@ -37,7 +37,8 @@ module.exports = function(sequelize, DataTypes) {
     callbackUrl: { type: DataTypes.STRING, allowNull: true },
     userOrderId: { type: DataTypes.STRING, allowNull: true},
     productId: { type: DataTypes.INTEGER, allowNull: true},
-    message: { type: DataTypes.STRING, allowNull: true }
+    message: { type: DataTypes.STRING, allowNull: true },
+    callbackDone: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
   });
 
   Order.STATE = {
@@ -78,12 +79,14 @@ module.exports = function(sequelize, DataTypes) {
     }
   };
 
-  Order.prototype.autoRecharge = function(){
+  Order.prototype.autoRecharge = function(models, product){
+  console.log("autoRecharge")
     var typeJson = product.typeJson()
     if(product.type == typeJson['曦和流量']){
-      return Order.ChongRecharger.rechargeOrder(this.phone, this.bid, "http://protchar.cn:8080/liuliangshopconfirm")
+      return new ChongRecharger(config.xh_client_id, config.xh_client_secret, true).rechargeOrder(models, this.phone, this.productId, config.xh_callback_url)
     }else{
-      return new Recharger(this.phone, this.value)
+      return new Promise(function(rvo, rej){
+      })
     }
   };
 

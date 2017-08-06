@@ -18,7 +18,7 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
       client_id = body.client_id,
       sign = body.sign,
       access_token = body.access_token,
-      customer = req.locals.customer
+      customer = res.locals.customer
 
   if(!(phone && product_id && sign && access_token)){
     helpers.errRespone(new Error(50003), res)
@@ -44,7 +44,12 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
       next(new Error(50005))
     }
   }, function(customer, next) {
-    models.Product.findById(product_id).then(function(product) {
+    models.Product.findOne({
+      where: {
+        id: product_id,
+        display: true
+      }
+    }).then(function(product) {
       if(product){
         next(null, customer, product)
       }else{
@@ -73,13 +78,15 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
       userOrderId: user_order_id,
       productId: product.id
     }).save().then(function(order) {
-      customer.updateAttributes({
-        total: customer.total - order.total
-      }).then(function(customer){
-        next(null, customer, product, order)
-      }).catch(function(err){
-        next(err)
-      })
+      next(null, customer, product, order)
+    }).catch(function(err){
+      next(err)
+    })
+  }, function(customer, product, order, next){
+    customer.updateAttributes({
+      total: customer.total - order.total
+    }).then(function(customer){
+      next(null, customer, product, order)
     }).catch(function(err){
       next(err)
     })
@@ -96,7 +103,7 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
         order: {
           transaction_id: order.transactionId,
           phone: order.phone,
-          product_id: order.exchangerId,
+          product_id: order.productId,
           total: order.total
         }
       })
