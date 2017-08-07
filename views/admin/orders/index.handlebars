@@ -49,11 +49,14 @@
             <thead>
               <tr>
                 <th>手机号码</th>
-                <th></th>
+                {{#if customer.is_admin }}
+                  <th></th>
+                {{/if}}
                 <th>用 户</th>
                 <th>套 餐</th>
                 <th>状 态</th>
                 <th>金 额</th>
+                <th>Transaction Id</th>
                 <th>获得流量</th>
                 <th>创建时间</th>
                 <th></th>
@@ -61,12 +64,14 @@
               </tr>
             </thead>
             <tbody>
-              {{#each extractOrders.rows}}
+              {{#each orders.rows}}
                 <tr>
                     <td>{{ phone }}</td>
-                    <td>{{ customer.id }}</td>
+                    {{#if ../customer.is_admin }}
+                      <td>{{ customer.id }}</td>
+                    {{/if}}
                     <td>{{ customer.username }}</td>
-                    <td>{{ name }}</td>
+                    <td>{{ product.name }}</td>
                     <td>{{ stateName }}</td>
                     <td>{{ total }}</td>
                     <td>{{ transactionId }}</td>

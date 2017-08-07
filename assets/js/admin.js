@@ -1,6 +1,6 @@
 function ajaxUpdateTrafficplan(_id, params){
     $.ajax({
-      url: '/admin/trafficplan/' + _id,
+      url: '/admin/product/' + _id,
       dataType: 'JSON',
       data: params,
       method: "POST"
@@ -64,7 +64,7 @@ $(function(){
   $("select[name='trafficPlanId']").on("change", function(e){
     var $this = $(this)
     $.ajax({
-      url: '/admin//trafficplans/' + $this.val(),
+      url: '/admin//product/' + $this.val(),
       dataType: 'JSON',
       method: "GET"
     }).done(function(data){

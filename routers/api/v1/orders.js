@@ -83,9 +83,7 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
       next(err)
     })
   }, function(customer, product, order, next){
-    customer.updateAttributes({
-      total: customer.total - order.total
-    }).then(function(customer){
+    customer.reduceTotal(models, order).then(function(flowHistory){
       next(null, customer, product, order)
     }).catch(function(err){
       next(err)

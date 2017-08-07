@@ -38,7 +38,10 @@ module.exports = function(sequelize, DataTypes) {
     userOrderId: { type: DataTypes.STRING, allowNull: true},
     productId: { type: DataTypes.INTEGER, allowNull: true},
     message: { type: DataTypes.STRING, allowNull: true },
-    callbackDone: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+    callbackDone: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    product: {
+      type: DataTypes.VIRTUAL
+    }
   });
 
   Order.STATE = {
@@ -51,7 +54,10 @@ module.exports = function(sequelize, DataTypes) {
     FINISH: 6
   }
 
-  Order.associate = function(models){};
+  Order.associate = function(models){
+    models.Order.belongsTo(models.Customer, { foreignKey: 'customerId' });
+    models.Order.belongsTo(models.Product, { foreignKey: 'productId' });
+  };
 
   Order.prototype.isDone = function(){
     return (this.state === Order.STATE.SUCCESS);

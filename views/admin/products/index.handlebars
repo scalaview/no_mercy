@@ -32,7 +32,7 @@
               </tr>
             </thead>
             <tbody>
-              {{#each trafficPlans.rows }}
+              {{#each products.rows }}
                 <tr>
                     <td>{{ name }}</td>
                     <td>{{ apiProvider type }}</td>
@@ -65,7 +65,7 @@
       </div>
 
       <div class="panel-footer">
-          {{pagination products '/admin/trafficplans'}}
+          {{pagination products '/admin/products'}}
       </div>
       <!-- /.panel-body -->
     </div>

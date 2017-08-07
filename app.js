@@ -112,6 +112,8 @@ for (var i = 0; i < adminRouters.length; i++) {
 };
 
 
+var front  = require('./routers/front');
+app.use(front);
 
 // --------------- app -----------------------
 
@@ -128,11 +130,6 @@ app.get('/403', function(req, res, next){
 app.get('/500', function(req, res, next){
   next(new Error('keyboard cat!'));
 });
-
-app.post("/callback_url", function(req, res){
-  res.json({ok: 1})
-})
-
 
 app.use(function(req, res, next){
   res.status(404);

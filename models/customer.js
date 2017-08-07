@@ -156,10 +156,9 @@ module.exports = function(sequelize, DataTypes) {
         comment: comment
       }
       if(target){
-        params['type'] = target.className
+        params['type'] = target.className()
         params['typeId'] = target.id
       }
-
       models.FlowHistory.build(params).save().then(function(flowHistory){
         rov(flowHistory)
       }).catch(function(err){
@@ -199,7 +198,7 @@ module.exports = function(sequelize, DataTypes) {
     })
   }
 
-  Customer.prototype.refundTotal = function(models, order, message, successCallBack, errCallBack) {
+  Customer.prototype.refundTotal = function(models, order, message) {
     var customer = this
     return new Promise(function(rvo, rej){
       async.waterfall([function(next) {

@@ -1,7 +1,6 @@
-request = require("request")
-models = require("../models")
-async = require("async");
-Ch = require("../recharger").ChongRecharger
+var request = require("request")
+var models = require("../models")
+var async = require("async");
 var helpers = require(process.env.PWD + "/helpers")
 
 function errfunc(e){
@@ -28,7 +27,7 @@ function auth(){
           var now = (new Date()).getTime() + data.expires_in * 1000
           rvo({accessToken: data.access_token, expireTime: now})
         }else{
-          rvo({accessToken: "", expireTime: 0})
+          rej(new Error(data.errmsg))
         }
       }else{
         rej(error)

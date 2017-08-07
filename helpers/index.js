@@ -492,15 +492,15 @@ exports.pagination = function(result, href){
         endIndex = (currentPage + 4 > totalpages) ? totalpages : currentPage + 4
 
   var data;
-  data = { status: 'previous', disabled: isFirst() ? 'disabled' : null, link: isFirst() ? "#" : addParams(href, {page: 1}), text: "首页"  }
+  data = { status: 'previous', disabled: isFirst() ? 'disabled' : null, link: isFirst() ? "#" : exports.addParams(href, {page: 1}), text: "首页"  }
   items.push(itemTemplate(data))
 
   for (var i = startIndex; i < endIndex ; i++) {
-    data = { status: (currentPage == (i + 1)) ? "active" : null, link: addParams(href, {page: i+1}), text: (i+1)}
+    data = { status: (currentPage == (i + 1)) ? "active" : null, link: exports.addParams(href, {page: i+1}), text: (i+1)}
     items.push(itemTemplate(data))
   };
 
-  data = { status: 'next', disabled: isLast() ? 'disabled' : null, link: isLast() ? "#" : addParams(href, {page: totalpages}), text: "尾页"  }
+  data = { status: 'next', disabled: isLast() ? 'disabled' : null, link: isLast() ? "#" : exports.addParams(href, {page: totalpages}), text: "尾页"  }
   items.push(itemTemplate(data))
 
   return template({ items: items.join("").htmlSafe() }).htmlSafe()
@@ -684,3 +684,11 @@ exports.amountType = function(type, amount){
 }
 
 
+exports.apiProvider = function(providerId){
+  for(var i=0; i < models.Product.TYPEARRAY.length; i++){
+    var target = models.Product.TYPEARRAY[i]
+    if(target.length >= 2 && target[0] == providerId){
+      return target[1]
+    }
+  }
+}
