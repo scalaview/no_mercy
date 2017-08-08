@@ -148,7 +148,7 @@ function getTrafficplan(source, catName){
   if(!source) return
   var template = Handlebars.compile(source);
   $.ajax({
-    url: '/getTrafficplans',
+    url: '/api/v1/product/lists?access_token={{token.accessToken}}',
     dataType: 'JSON',
     data: {
       catName: catName
