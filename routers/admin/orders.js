@@ -7,6 +7,7 @@ var _ = require('lodash')
 var errHtmlRespone = helpers.errHtmlRespone
 var config = require("../../config")
 var request = require("request")
+var errRespone = helpers.errRespone
 
 admin.get("/orders", function(req, res) {
   var result,
@@ -152,11 +153,12 @@ admin.get("/orders/new", function(req, res) {
   })
 })
 
-admin.post("/extractorder", function(req, res) {
-  if(!( req.body.phone !== undefined && req.body.phone.present() && req.body.trafficPlanId !== undefined &&  req.body.trafficPlanId.present() )){
+admin.post("/order", function(req, res) {
+  var customer = res.locals.customer
+  if(!( req.body.phone !== undefined && req.body.phone.present() && req.body.product_id !== undefined &&  req.body.product_id.present() )){
     res.format({
       html: function(){
-        res.redirect("/admin/extractorders/new")
+        res.redirect("/admin/orders/new")
         return
       },
       json: function(){
@@ -173,84 +175,25 @@ admin.post("/extractorder", function(req, res) {
     });
     return
   }
-  async.waterfall([function(next) {
-    models.TrafficPlan.findById(req.body.trafficPlanId).then(function(trafficPlan) {
-      if(trafficPlan){
-        next(null, trafficPlan)
-      }else{
-        next(new Error("请选择正确的流量包"))
-      }
-    }).catch(function(err) {
-      next(err)
-    })
-  }, function(trafficPlan, next){
-    models.ExtractOrder.build({
-      exchangerType: trafficPlan.className(),
-      exchangerId: trafficPlan.id,
-      phone: req.body.phone,
-      cost: req.body.cost,
-      value: trafficPlan.value,
-      bid: trafficPlan.bid,
-      type: trafficPlan.type,
-      chargeType: "terminal",
-      extend: req.body.extend,
-      productType: models.TrafficPlan.PRODUCTTYPE["traffic"]
-    }).save().then(function(extractOrder) {
-      next(null, extractOrder, trafficPlan)
-    }).catch(function(err) {
-      next(err)
-    })
-  }, function(extractOrder, trafficPlan, next){
-    autoCharge(extractOrder, trafficPlan, function(err){
-      if(err){
-        next(err)
-      }else{
-        next(null, extractOrder, trafficPlan)
-      }
-    })
-  }], function(err, extractOrder, trafficPlan) {
-    if(err){
-      console.log(err)
-      res.format({
-        html: function(){
-          req.flash('err', err.message)
-          res.redirect("/admin/extractorders/new")
-          return
-        },
-        json: function(){
-          res.json({
-            code: 1,
-            msg: err.message
-          });
-          return
-        },
-        default: function() {
-          res.status(406).send('Not Acceptable');
-          return
-        }
-      });
+  var options = {
+    uri: "http://localhost:"+config.port+"/api/v1/flow/recharge/order",
+    method: 'POST'
+  }
+  var signParams = {
+    client_id: customer.client_id,
+    phone: req.body.phone,
+    product_id: req.body.product_id
+  }
+  signParams['sign'] = helpers.sign(signParams)
+  signParams['access_token'] = customer.access_token
+  options["json"] = signParams
+  request(options, function (error, response) {
+    if (!error && response.statusCode == 200) {
+      res.json(response.body)
     }else{
-      res.format({
-        html: function(){
-          req.flash('info', "create success")
-          res.redirect("/admin/extractorders/" + extractOrder.id + "/edit")
-          return
-        },
-        json: function(){
-          res.json({
-            code: 0,
-            msg: "成功"
-          });
-          return
-        },
-        default: function() {
-          res.status(406).send('Not Acceptable');
-          return
-        }
-      });
+      errRespone(error, res)
     }
-  })
-
+  });
 })
 
 

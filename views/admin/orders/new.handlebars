@@ -40,130 +40,20 @@
 
 
 <script id="trafficplans-template" type="text/x-handlebars-template">
-\{{#each trafficgroups}}
-  <div class="col-xs-12">
-    <label>\{{name}}</label>
-    <ul class="bs-glyphicons-list">
-      \{{#each trafficplans}}
-        <li data-value="\{{id}}" data-price="\{{cost}}">\{{name}} \{{cost}}元</li>
-      \{{/each}}
-    </ul>
+<div class="col-xs-12">
+  <div class="row">
+  \{{#each products}}
+      <ul class="col-xs-4 bs-glyphicons-list">
+        <li data-value="\{{product_id}}" data-price="\{{price}}">\{{name}} \{{price}}元</li>
+      </ul>
+  \{{/each}}
   </div>
-\{{/each}}
+</div>
+
 </script>
 
 <script type="text/javascript">
 $(function(){
-  $("#charge").on("click", recharge)
-  chooseItem()
-  mobileBlur(function(result) {
-    var source   = $("#trafficplans-template").html();
-    if(source !== undefined && source !== ''){
-      getTrafficplan(source, result.catName)
-    }
-  });
+  window.accessToken = '{{token.accessToken}}'
 })
-
-function recharge(){
-  var selected = $(".bs-glyphicons-list li.selected"),
-      mobile = $("#mobile").val()
-  if(!isMobile(mobile)){
-    alert("先输入电话")
-    return
-  }
-
-  if(!selected){
-    alert("请选择套餐")
-    return
-  }
-
-  $.ajax({
-    url: '/admin/extractorder',
-    method: "POST",
-    dataType: 'JSON',
-    data: {
-      phone: mobile,
-      trafficPlanId: selected.data("value")
-    }
-  }).done(function(data){
-    if(!data.code){
-      toastr.success(data.msg)
-    }else{
-      toastr.error(data.msg)
-    }
-  }).fail(function(err){
-    console.log(err)
-    toastr.error("服务器出错")
-  })
-}
-
-function chooseItem(){
-  $(document).on("click", ".bs-glyphicons-list li", function(){
-    var $this = $(this)
-    if(!$this.hasClass("selected")){
-      $(".bs-glyphicons-list li").removeClass("selected")
-      $this.addClass("selected")
-      $("#product-price").html($this.data("price") + "元")
-    }
-  })
-}
-
-function mobileBlur(successCallback){
-  //手机号码失去焦点事件
-  $("#mobile").bind("change", function () {
-      var mobile = $.trim($(this).val());
-      if ($.trim(mobile) == "") {
-          return;
-      }
-      if (!isMobile(mobile)) {
-          showDialog("请输入正确的手机号码");
-          return;
-      }
-      getCarrier(mobile, successCallback);
-  });
-}
-
-function getCarrier(phone, successCallback){
-  $.ajax({
-    url: 'https://tcc.taobao.com/cc/json/mobile_tel_segment.htm',
-    method: 'GET',
-    dataType: 'JSONP',
-    data: {
-      tel: phone
-    }
-  }).done(function(result){
-    // areaVid: "30517"carrier: "广东移动"catName: "中国移动"ispVid: "3236139"mts: "1382846"province: "广东"
-    if(result.catName){
-      $("#phone-detail").html(result.catName + ' ' + result.carrier).data("provider", result.carrier).show()
-      successCallback(result)
-    }else{
-      showDialog("请输入正确的手机号码");
-    }
-  }).fail(function(err) {
-    showDialog("服务器错误")
-  })
-}
-
-function getTrafficplan(source, catName){
-  if(!source) return
-  var template = Handlebars.compile(source);
-  $.ajax({
-    url: '/api/v1/product/lists?access_token={{token.accessToken}}',
-    dataType: 'JSON',
-    data: {
-      catName: catName
-    },
-    method: "GET"
-  }).done(function(data){
-    if(data.err == 4){  //服务器维护中
-      alert("服务器维护中")
-    }else{
-      var html = template({trafficgroups: data})
-      $("#data").html(html)
-    }
-  }).fail(function(err){
-    console.log(err)
-    alert("服务器错误")
-  })
-}
 </script>

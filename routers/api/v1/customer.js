@@ -3,7 +3,6 @@ var app = express.Router();
 var models  = require(process.env.PWD + '/models')
 var helpers = require(process.env.PWD + "/helpers")
 var async = require("async")
-var requireLogin = helpers.requireLogin
 
 
 app.post("/customer/create", function(req, res) {

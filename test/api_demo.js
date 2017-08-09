@@ -39,7 +39,7 @@ function auth(){
 
 function getProducts(access_token){
   return new Promise(function(rvo, rej){
-    request.get({url: "http://localhost:3008/api/v1/product/lists?access_token=" + access_token }, function (error, res) {
+    request.get({url: "http://localhost:3008/my" + access_token }, function (error, res) {
       if (!error && res.statusCode == 200) {
         var data = res.body
         rvo(data)
@@ -79,6 +79,9 @@ function order(accessToken){
   });
 }
 
+/*
+{ code: 0, data: { province: '广东', city: '深圳', sp: '移动' } }
+*/
 function phone_data(accessToken, phone){
   return new Promise(function(rvo, rej){
     request.get({url: "http://localhost:3008/api/v1/phone/data?phone="+phone+"&access_token="+accessToken}, function (error, res) {
@@ -101,7 +104,7 @@ function main(){
       next(err)
     })
   }, function(accessToken, next){
-    phone_data(accessToken, "13823212465").then(function(data){
+    phone_data(accessToken, "1382321e2465").then(function(data){
       console.log(JSON.parse(data))
       next(null, accessToken)
     }).catch(function(err){

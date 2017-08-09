@@ -183,7 +183,13 @@ module.exports = function(sequelize, DataTypes) {
           rej(new Error("剩余流量币不足"))
         }
       }, function(customer, order, next){
-        customer.takeFlowHistory(models, order, order.total, "购买流量" + order.name + "至" + order.phone + " 支付成功", models.FlowHistory.STATE.REDUCE).then(function(flowHistory){
+        order.getProduct().then(function(product){
+          next(null, customer, order, product);
+        }).catch(function(err){
+          next(err)
+        })
+      }, function(customer, order, product, next){
+        customer.takeFlowHistory(models, order, order.total, "购买流量" + product.name + "至" + order.phone + " 支付成功", models.FlowHistory.STATE.REDUCE).then(function(flowHistory){
           next(null, customer, order, flowHistory)
         }).catch(function(err){
           next(err)
@@ -214,7 +220,13 @@ module.exports = function(sequelize, DataTypes) {
           rej(new Error("订单金额错误"))
         }
       }, function(customer, order, next){
-        var msg = "提取" + order.name + "至" + order.phone + "失败。原因：" + order.message
+        order.getProduct().then(function(product){
+          next(null, customer, order, product);
+        }).catch(function(err){
+          next(err)
+        })
+      }, function(customer, order, product, next){
+        var msg = "提取" + product.name + "至" + order.phone + "失败。原因：" + order.message
         customer.takeFlowHistory(models, order, order.total, msg, models.FlowHistory.STATE.ADD).then(function(flowHistory){
           next(null, customer, order, flowHistory)
         }).catch(function(err){

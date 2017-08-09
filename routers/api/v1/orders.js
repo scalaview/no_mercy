@@ -74,7 +74,7 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
       customerId: customer.id,
       transactionId: null,
       total: product.price,
-      callbackUrl: decodeURIComponent(callback_url),
+      callbackUrl: callback_url ? decodeURIComponent(callback_url) : null,
       userOrderId: user_order_id,
       productId: product.id
     }).save().then(function(order) {
@@ -90,7 +90,7 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
     })
   }, function(customer, product, order,next) {
     next(null, customer, product, order)
-    autoCharge(order, product)
+    // autoCharge(order, product)
   }], function(err, customer, product, order){
     if(err){
       errRespone(err, res)
@@ -100,7 +100,6 @@ app.post("/flow/recharge/order", validateToken, function(req, res) {
         errmsg: "success",
         order: {
           transaction_id: order.transactionId,
-          phone: order.phone,
           product_id: order.productId,
           total: order.total
         }
@@ -154,7 +153,7 @@ app.get("/order/detail", validateToken, function(req, res) {
         order: {
           transaction_id: order.transactionId,
           phone: order.phone,
-          product_id: order.exchangerId,
+          product_id: order.productId,
           total: order.total,
           created_at: helpers.strftime(order.createdAt),
           state: order.state,

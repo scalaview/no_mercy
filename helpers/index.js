@@ -241,95 +241,6 @@ exports.adminOnly = function(req, res, next){
   }
 }
 
-exports.requireLogin = function(req, res, next) {
-  if(process.env.NODE_ENV == "development"){
-    req.session.customer_id = 1
-  }
-  var url = req.originalUrl
-  var encodeUrl = new Buffer(url).toString('base64');
-
-  if (req.session.customer_id) {
-    models.Customer.findOne({ where: { id: req.session.customer_id } }).then(function(customer) {
-      if(customer){
-        res.locals.customer = customer
-        next();
-      }else{
-        res.redirect("/admin/login?to=" + encodeUrl);
-      }
-    }).catch(function(err){
-      exports.errRespone(err, res)
-    })
-  } else {
-    res.redirect("/admin/login?to=" + encodeUrl);
-  }
-}
-
-exports.requireAuth = function(req, res, next) {
-  if(process.env.NODE_ENV == "development"){
-    models.Customer.findOne({
-        where: {
-          id: 2
-        }
-    }).then(function(customer){
-      if(customer){
-        var now = (new Date()).getTime()
-        if(customer.expires_in && customer.expires_in.getTime() > (now + 30000) && customer.access_token){
-          res.locals.customer = customer
-          next()
-        }else{
-          customer.generateAccessToken().then(function(customer){
-            res.locals.customer = customer
-            next()
-          }).catch(function(err){
-            exports.errRespone(err, req)
-          })
-        }
-      }else{
-        exports.errRespone(new Error(50002), req)
-      }
-    }).catch(function(err){
-      exports.errRespone(err, req)
-    })
-    return
-  }
-  var body = req.rawBody || req.body,
-      client_id = body.client_id,
-      client_secret = body.client_secret,
-      grant_type = body.grant_type
-
-  if(!(client_id && client_secret && grant_type == "client_credential")) {
-    exports.errRespone(new Error(50001), res)
-    return
-  }
-  models.Customer.findOne({
-    where: {
-      client_id: client_id,
-      client_secret: client_secret
-    }
-  }).then(function(customer){
-    if(customer){
-      var now = (new Date()).getTime()
-      if(customer.expires_in && customer.expires_in.getTime() > (now + 30000) && customer.access_token){
-        res.locals.customer = customer
-        next()
-      }else{
-        customer.generateAccessToken().then(function(customer){
-          res.locals.customer = customer
-          next()
-        }).catch(function(err){
-          exports.errRespone(err, req)
-        })
-      }
-    }else{
-      exports.errRespone(new Error(50002), req)
-    }
-  }).catch(function(err){
-    exports.errRespone(err, req)
-  })
-}
-
-
-
 exports.validateToken = function(req, res, next){
 
   if(process.env.NODE_ENV == "development"){
@@ -374,7 +285,7 @@ exports.validateToken = function(req, res, next){
 
 
 exports.doCallBack = function(order, errcode, msg, time){
-  if(!order.callbackUrl){
+  if(!!!order.callbackUrl){
     return
   }
   var params = {
@@ -443,6 +354,11 @@ exports.autoCharge = function(order, product){
           order.updateAttributes({
             state: models.Order.STATE.FAIL,
             message: data.errmsg
+          })
+          order.getCustomer().then(function(customer){
+            customer.refundTotal(models, order, data.errmsg);
+          }).catch(function(err){
+            console.log(err)
           })
           exports.doCallBack(order, "50014", data.errmsg, 3)
         }
