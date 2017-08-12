@@ -2,6 +2,7 @@ models = require("../models")
 async = require("async");
 Ch = require("../recharger").ChongRecharger
 
+var config = require("../config")
 
 function getProvider(provider_type){
   switch(provider_type){
@@ -10,7 +11,7 @@ function getProvider(provider_type){
   case '2':
     return 0;
   case '3':
-    return 3
+    return 1
   }
 }
 
@@ -32,7 +33,7 @@ function getProvince(name){
   return "未知";
 }
 
-c = new Ch(null, null, true)
+c = new Ch(config.xh_client_id, config.xh_client_secret, true)
 c.getProducts(models).then(function(data){
   async.each(data.products, function(plan, next){
     models.Product.findOrCreate({
@@ -52,8 +53,15 @@ c.getProducts(models).then(function(data){
         purchasePrice: plan.cost,
         display: false
       }
-    }).then(function(product){
-      next(null)
+    }).spread(function(product){
+      product.updateAttributes({
+        name: plan.name,
+        price: plan.price,
+        purchasePrice: plan.cost,
+        providerId: getProvider(plan.provider_type)
+      }).then(function(product){
+        next(null)
+      })
     }).catch(function(err){
       next(err)
     })

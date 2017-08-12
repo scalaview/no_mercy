@@ -89,7 +89,7 @@ module.exports = function(sequelize, DataTypes) {
   console.log("autoRecharge")
     var typeJson = product.typeJson()
     if(product.type == typeJson['曦和流量']){
-      return new ChongRecharger(config.xh_client_id, config.xh_client_secret, true).rechargeOrder(models, this.phone, this.bid, config.xh_callback_url)
+      return new ChongRecharger(config.xh_client_id, config.xh_client_secret, false).rechargeOrder(models, this.phone, this.bid, config.xh_callback_url)
     }else{
       return new Promise(function(rvo, rej){
       })
